@@ -57,7 +57,7 @@ export default function Home() {
           
           {/* Transactions Tab */}
           {activeTab === 'transactions' && (
-            <div className="flex flex-col md:flex-row w-[100vw] gap-8 p-4">
+            <div className="flex flex-col md:flex-row w-[100%] gap-8 p-4">
               <div className="flex justify-center ">
                 <TransactionForm />
               </div>

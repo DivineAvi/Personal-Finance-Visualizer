@@ -17,6 +17,10 @@ export default function TransactionList() {
     const [showConfirmDelete, setShowConfirmDelete] = useState<string | null>(null);
     
     const handleEdit = (transaction: MongoTransaction) => {
+        scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
         setEditingTransaction({
             data: {
                 amount: transaction.amount,
@@ -60,7 +64,7 @@ export default function TransactionList() {
     return (
         <div className="w-full overflow-x-auto text-white/70 bg-white/7 rounded-2xl p-2">
             {editingTransaction && (
-                <div className="absolute mb-6 p-4 rounded-lg bg-black/95 w-[50%]">
+                <div className="absolute mb-6 p-4 rounded-lg bg-black/95 w-[300px] right-7">
                     <div className="flex justify-end items-center mb-4">
                         <button 
                             onClick={handleEditCancel}

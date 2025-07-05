@@ -82,7 +82,7 @@ export default function TransactionForm({
     return (
         <div className="mb-8">
             <h2 className="text-xl font-semibold mb-4 text-white">{mode} Transaction</h2>
-            <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4 w-full max-w-md min-w-[25vw] rounded-md bg-white/6 text-white">
+            <form onSubmit={handleSubmit} className={`${mode=='Edit'?"":"min-w-[25vw]"}`+" p-5 flex flex-col gap-4 w-full max-w-md  rounded-md bg-white/6 text-white"}>
                 <div>
                     <div className="flex justify-between items-center gap-5">
                         <label htmlFor="amount" className={`${mode=='Edit'?"hidden":""}`+" font-medium"}>Amount</label>

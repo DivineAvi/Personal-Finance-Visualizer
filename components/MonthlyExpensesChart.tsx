@@ -108,7 +108,7 @@ export default function MonthlyExpensesChart() {
   }
 
   return (
-    <div className="w-full p-4 border rounded-lg shadow-sm bg-white">
+    <div className="w-full p-4 border border-white/20 rounded-lg shadow-sm bg-white/5 text-white">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Monthly Expenses</h2>
         <div className="flex items-center gap-4">
@@ -116,7 +116,7 @@ export default function MonthlyExpensesChart() {
             <select 
               value={selectedYear}
               onChange={(e) => setSelectedYear(Number(e.target.value))}
-              className="p-2 border rounded"
+              className="p-2 border rounded outline-none border-white/10 bg-black/20"
             >
               {availableYears.map(year => (
                 <option key={year} value={year}>{year}</option>
@@ -132,6 +132,7 @@ export default function MonthlyExpensesChart() {
       <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
+            
             data={chartData}
             margin={{
               top: 5,
@@ -140,9 +141,9 @@ export default function MonthlyExpensesChart() {
               bottom: 5
             }}
           >
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid strokeDasharray="2 2" stroke="#ffffff30"  />
             <XAxis dataKey="month" />
-            <YAxis />
+            
             <Tooltip 
               formatter={formatTooltipValue}
               labelFormatter={(label) => `Month: ${label}`}
