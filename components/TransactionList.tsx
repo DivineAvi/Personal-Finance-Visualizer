@@ -58,11 +58,10 @@ export default function TransactionList() {
     }
     
     return (
-        <div className="w-full">
+        <div className="w-full overflow-x-auto text-white/70 bg-white/7 rounded-2xl p-2">
             {editingTransaction && (
-                <div className="mb-6 p-4 border rounded-lg bg-gray-50">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-medium">Edit Transaction</h3>
+                <div className="absolute mb-6 p-4 rounded-lg bg-black/95 w-[50%]">
+                    <div className="flex justify-end items-center mb-4">
                         <button 
                             onClick={handleEditCancel}
                             className="text-gray-500 hover:text-gray-700"
@@ -80,9 +79,9 @@ export default function TransactionList() {
             )}
             
             <div className="w-full overflow-x-auto">
-                <table className="w-full border-collapse">
-                    <thead className="bg-gray-100">
-                        <tr className="border-b">
+                <table className="w-full border-collapse ">
+                    <thead className="bg-black/20">
+                        <tr className="border-b border-white/20">
                             <th className="p-2 text-left">Date</th>
                             <th className="p-2 text-left">Amount</th>
                             <th className="p-2 text-left">Description</th>
@@ -101,7 +100,7 @@ export default function TransactionList() {
                                 const mongoTransaction = transaction as MongoTransaction;
                                 const category = getCategoryById(mongoTransaction.category);
                                 return (
-                                    <tr key={mongoTransaction._id} className="border-b hover:bg-gray-50">
+                                    <tr key={mongoTransaction._id} className="border-b border-white/9 hover:bg-white/5 whitespace-nowrap">
                                         <td className="p-2">{mongoTransaction.date}</td>
                                         <td className="p-2">${mongoTransaction.amount.toFixed(2)}</td>
                                         <td className="p-2">{mongoTransaction.description}</td>

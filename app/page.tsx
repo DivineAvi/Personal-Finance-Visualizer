@@ -22,37 +22,32 @@ export default function Home() {
       <TransactionProvider>
         <BudgetProvider>
           {/* Navigation Tabs */}
-          <div className="flex border-b mb-6 overflow-x-auto">
+          <div className="grid grid-cols-4 gap-0 border-b mb-6 p-2 sm:max-w-1/2 mx-auto border-b-1 border-white/20 box-content">
             <button 
-              className={`px-4 py-2 ${activeTab === 'dashboard' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-600'}`}
+              className={` px-4 py-2 ${activeTab === 'dashboard' ? ' text-white' : 'text-gray-600 '} flex items-center justify-center `}
               onClick={() => setActiveTab('dashboard')}
             >
               Dashboard
             </button>
             <button 
-              className={`px-4 py-2 ${activeTab === 'transactions' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-600'}`}
+              className={`px-4 py-2 ${activeTab === 'transactions' ? 'text-white' : 'text-gray-600'} flex items-center justify-center `}
               onClick={() => setActiveTab('transactions')}
             >
-              Transactions
+              Txns
             </button>
             <button 
-              className={`px-4 py-2 ${activeTab === 'charts' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-600'}`}
+              className={`px-4 py-2 ${activeTab === 'charts' ? 'text-white' : 'text-gray-600'} flex items-center justify-center `}
               onClick={() => setActiveTab('charts')}
             >
               Charts
             </button>
             <button 
-              className={`px-4 py-2 ${activeTab === 'budgets' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-600'}`}
+              className={`px-4 py-2 ${activeTab === 'budgets' ? 'text-white' : 'text-gray-600'} flex items-center justify-center `}
               onClick={() => setActiveTab('budgets')}
             >
               Budgets
             </button>
-            <button 
-              className={`px-4 py-2 ${activeTab === 'insights' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-600'}`}
-              onClick={() => setActiveTab('insights')}
-            >
-              Insights
-            </button>
+          
           </div>
           
           {/* Dashboard Tab */}
@@ -62,12 +57,12 @@ export default function Home() {
           
           {/* Transactions Tab */}
           {activeTab === 'transactions' && (
-            <div className="grid md:grid-cols-2 gap-8">
-              <div>
+            <div className="flex flex-col md:flex-row w-[100vw] gap-8 p-4">
+              <div className="flex justify-center ">
                 <TransactionForm />
               </div>
-              <div>
-                <h2 className="text-xl font-semibold mb-4">Transaction History</h2>
+              <div className="flex flex-col items-center w-full">
+                <h2 className="text-xl text-indigo-500 font-semibold mb-4">Transaction History</h2>
                 <TransactionList />
               </div>
             </div>

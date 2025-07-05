@@ -12,11 +12,11 @@ interface TransactionFormProps {
     editIndex?: string; // Changed from number to string for MongoDB _id
 }
 
-export default function TransactionForm({ 
-    onSuccess, 
-    mode = "Add", 
+export default function TransactionForm({
+    onSuccess,
+    mode = "Add",
     initialData,
-    editIndex 
+    editIndex
 }: TransactionFormProps) {
     const { addTransaction, editTransaction } = useTransactionContext();
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -51,17 +51,17 @@ export default function TransactionForm({
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        
+
         if (validateForm()) {
             const transaction = formData as TransactionType;
-            
+
             try {
                 if (mode === "Edit" && editIndex !== undefined) {
                     await editTransaction(editIndex, transaction);
                 } else {
                     await addTransaction(transaction);
                 }
-                
+
                 // Reset form after submission
                 setFormData({
                     amount: 0,
@@ -69,7 +69,7 @@ export default function TransactionForm({
                     description: '',
                     category: ''
                 });
-                
+
                 if (onSuccess) {
                     onSuccess();
                 }
@@ -81,63 +81,64 @@ export default function TransactionForm({
 
     return (
         <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">{mode} Transaction</h2>
-            <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4 w-full max-w-md border-1 rounded-md">
+            <h2 className="text-xl font-semibold mb-4 text-white">{mode} Transaction</h2>
+            <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-4 w-full max-w-md min-w-[25vw] rounded-md bg-white/6 text-white">
                 <div>
-                    <div className="flex justify-between items-center">
-                        <label htmlFor="amount" className="font-medium">Amount</label>
-                        <input 
-                            type="number" 
-                            name="amount" 
+                    <div className="flex justify-between items-center gap-5">
+                        <label htmlFor="amount" className={`${mode=='Edit'?"hidden":""}`+" font-medium"}>Amount</label>
+                        <input
+                            type="number"
+                            name="amount"
                             id="amount"
-                            value={formData.amount || ''} 
+                            value={formData.amount || ''}
                             onChange={handleChange}
-                            className="w-1/2 p-2 border rounded" 
-                            placeholder="0.00" 
+                            className={" w-full p-2 rounded outline-none border-white/20 border-1 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"}
+                            placeholder="0.00"
                             step="0.01"
                         />
+
                     </div>
                     {errors.amount && <span className="text-sm text-red-500">{errors.amount}</span>}
                 </div>
-                
+
                 <div>
-                    <div className="flex justify-between items-center">
-                        <label htmlFor="date" className="font-medium">Date</label>
-                        <input 
-                            type="date" 
-                            name="date" 
+                    <div className="flex justify-between items-center gap-5">
+                        <label htmlFor="date" className={`${mode=='Edit'?"hidden":""}`+" font-medium"}>Date</label>
+                        <input
+                            type="date"
+                            name="date"
                             id="date"
-                            value={formData.date || ''} 
+                            value={formData.date || ''}
                             onChange={handleChange}
-                            className="w-1/2 p-2 border rounded" 
+                            className="w-full p-2 border rounded outline-none border-white/20 border-1 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
                         />
                     </div>
                     {errors.date && <span className="text-sm text-red-500">{errors.date}</span>}
                 </div>
-                
+
                 <div>
-                    <label htmlFor="description" className="font-medium">Description</label>
-                    <input 
-                        type="text" 
-                        name="description" 
+                    <label htmlFor="description" className={`${mode=='Edit'?"hidden":""}`+" font-medium"}>Description</label>
+                    <input
+                        type="text"
+                        name="description"
                         id="description"
-                        value={formData.description || ''} 
+                        value={formData.description || ''}
                         onChange={handleChange}
-                        className="w-full p-2 border rounded mt-1" 
-                        placeholder="Transaction description" 
+                        className="w-full p-2 border rounded mt-1 outline-none border-white/20 border-1 text-overflow-ellipsis"
+                        placeholder="Transaction description"
                     />
                     {errors.description && <span className="text-sm text-red-500">{errors.description}</span>}
                 </div>
-                
+
                 <div>
-                    <div className="flex justify-between items-center">
-                        <label htmlFor="category" className="font-medium">Category</label>
-                        <select 
-                            name="category" 
+                    <div className="flex justify-between items-center gap-5">
+                        <label htmlFor="category" className={`${mode=='Edit'?"hidden":""}`+" font-medium"}>Category</label>
+                        <select
+                            name="category"
                             id="category"
-                            value={formData.category || ''} 
+                            value={formData.category || ''}
                             onChange={handleChange}
-                            className="w-1/2 p-2 border rounded"
+                            className="w-full p-2 border rounded outline-none border-white/20 border-1 bg-black"
                         >
                             <option value="">Select a category</option>
                             {CATEGORIES.map(category => (
@@ -149,12 +150,12 @@ export default function TransactionForm({
                     </div>
                     {errors.category && <span className="text-sm text-red-500">{errors.category}</span>}
                 </div>
-                
-                <button 
-                    type="submit" 
-                    className="mt-2 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition-colors"
+
+                <button
+                    type="submit"
+                    className="mt-2 bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded transition-colors duration-1000"
                 >
-                    {mode} Transaction
+                    {mode}
                 </button>
             </form>
         </div>

@@ -85,7 +85,7 @@ export default function Dashboard() {
     tl.fromTo(
       topCategoriesRef.current,
       { y: 300, opacity: 0 },
-      { y: 0, opacity: 1, duration: 1.2, ease: "back.out(1.5)" },
+      { y: 0, opacity: 1, duration: 1.2, stagger: 0.2, ease: "back.out(1.5)" },
       "+=0.01" // Wait for previous animation to complete before starting
     );
     
