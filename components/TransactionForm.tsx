@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { TransactionType } from "../types/Transactions";
 import { useTransactionContext } from "@/context/TransactionContext";
+import { CATEGORIES } from "@/types/Categories";
 
 interface TransactionFormProps {
     onSuccess?: () => void;
@@ -42,7 +43,7 @@ export default function TransactionForm({
         if (!formData.amount) newErrors.amount = "Amount is required";
         if (!formData.date) newErrors.date = "Date is required";
         if (!formData.description) newErrors.description = "Description is required";
-        if (!formData.category || formData.category === "None") newErrors.category = "Please select a valid category";
+        if (!formData.category || formData.category === "none") newErrors.category = "Please select a valid category";
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -130,19 +131,16 @@ export default function TransactionForm({
                         <select 
                             name="category" 
                             id="category"
-                            value={formData.category || 'None'} 
+                            value={formData.category || ''} 
                             onChange={handleChange}
                             className="w-1/2 p-2 border rounded"
                         >
-                            <option value="None">Select</option>
-                            <option value="Groceries">Groceries</option>
-                            <option value="Transportation">Transportation</option>
-                            <option value="Utilities">Utilities</option>
-                            <option value="Entertainment">Entertainment</option>
-                            <option value="Housing">Housing</option>
-                            <option value="Healthcare">Healthcare</option>
-                            <option value="Dining">Dining</option>
-                            <option value="Other">Other</option>
+                            <option value="">Select a category</option>
+                            {CATEGORIES.map(category => (
+                                <option key={category.id} value={category.id}>
+                                    {category.name}
+                                </option>
+                            ))}
                         </select>
                     </div>
                     {errors.category && <span className="text-sm text-red-500">{errors.category}</span>}

@@ -22,79 +22,79 @@ export const TransactionProvider = ({ children }: { children: React.ReactNode })
       date: "2023-01-15",
       amount: 120,
       description: "Grocery Shopping",
-      category: "Groceries"
+      category: "groceries"
     },
     {
       date: "2023-02-05",
       amount: 50,
       description: "Gas Station",
-      category: "Transportation"
+      category: "transportation"
     },
     {
       date: "2023-02-20",
       amount: 200,
       description: "Electricity Bill",
-      category: "Utilities"
+      category: "utilities"
     },
     {
       date: "2023-03-10",
       amount: 80,
       description: "Internet Bill",
-      category: "Utilities"
+      category: "utilities"
     },
     {
       date: "2023-04-05",
       amount: 150,
       description: "Dinner with friends",
-      category: "Dining"
+      category: "dining"
     },
     {
       date: "2023-05-15",
       amount: 300,
       description: "Car Repair",
-      category: "Transportation"
+      category: "transportation"
     },
     {
       date: "2023-06-01",
       amount: 75,
       description: "Pharmacy",
-      category: "Healthcare"
+      category: "healthcare"
     },
     {
       date: "2023-07-12",
       amount: 220,
       description: "New Clothes",
-      category: "Shopping"
+      category: "shopping"
     },
     {
       date: "2023-08-20",
       amount: 180,
       description: "Concert Tickets",
-      category: "Entertainment"
+      category: "entertainment"
     },
     {
       date: "2023-09-05",
       amount: 90,
       description: "Books",
-      category: "Education"
+      category: "education"
     },
     {
       date: "2023-10-10",
       amount: 250,
       description: "Home Supplies",
-      category: "Housing"
+      category: "housing"
     },
     {
       date: "2023-11-25",
       amount: 400,
       description: "Flight Tickets",
-      category: "Travel"
+      category: "travel"
     },
     {
       date: "2023-12-15",
       amount: 350,
       description: "Holiday Gifts",
-      category: "Shopping"
+      category: "shopping"
     }
   ]);
 
