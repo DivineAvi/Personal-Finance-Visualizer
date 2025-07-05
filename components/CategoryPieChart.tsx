@@ -101,9 +101,11 @@ export default function CategoryPieChart() {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-white p-2 border rounded shadow-sm">
+        <div className="bg-black p-2 border border-indigo-500/30 rounded shadow-sm  text-white">
           <p className="font-medium">{data.name}</p>
           <p className="text-sm">${data.value.toFixed(2)}</p>
+          <div className="h-px bg-gradient-to-r from-indigo-500/20 via-indigo-500/60 to-indigo-500/20 my-2"></div>
+            
           <p className="text-xs text-gray-600">
             {((data.value / totalExpenses) * 100).toFixed(1)}% of total
           </p>
@@ -124,14 +126,14 @@ export default function CategoryPieChart() {
   }
 
   return (
-    <div className="w-full p-4 border rounded-lg shadow-sm bg-white">
+    <div className="w-full p-4 rounded-lg shadow-sm bg-white/5 text-white/80">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Expenses by Category</h2>
         <div className="flex items-center gap-4">
           <select
             value={selectedYear || ''}
             onChange={(e) => setSelectedYear(e.target.value ? parseInt(e.target.value) : null)}
-            className="p-2 border rounded"
+            className="p-2 border rounded outline-none border-white/10 bg-black/20"
           >
             <option value="">All Time</option>
             {years.map(year => (
@@ -139,12 +141,12 @@ export default function CategoryPieChart() {
             ))}
           </select>
           <div className="text-sm font-medium">
-            Total: <span className="text-blue-600">${totalExpenses.toFixed(2)}</span>
+            Total: <span className="text-indigo-400">${totalExpenses.toFixed(2)}</span>
           </div>
         </div>
       </div>
       
-      <div className="h-80">
+      <div className="h-80 bg-black/10">
         {chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>

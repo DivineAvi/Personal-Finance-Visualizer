@@ -11,9 +11,8 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  TooltipProps
+  Cell
 } from "recharts";
-import { ValueType } from "recharts/types/component/DefaultTooltipContent";
 
 type MonthlyExpense = {
   month: string;
@@ -25,6 +24,30 @@ export default function MonthlyExpensesChart() {
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear); // Default to current year
   const [chartData, setChartData] = useState<MonthlyExpense[]>([]);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
+  // Colors for the chart
+  const barColor = "#8884d8";
+  const activeBarColor = "#6366f1"; // Indigo color for active/clicked bar
+  
+  // Custom tooltip component
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const value = payload[0].value;
+      return (
+        <div className="bg-black/60 border border-indigo-500/30 rounded-md p-4 shadow-xl backdrop-blur-md">
+          <div className="flex flex-col gap-1">
+            <p className="text-gray-400 text-xs font-medium">Month</p>
+            <p className="text-white font-semibold text-base">{label}</p>
+            <div className="h-px bg-gradient-to-r from-indigo-500/20 via-indigo-500/60 to-indigo-500/20 my-2"></div>
+            <p className="text-gray-400 text-xs font-medium">Expenses</p>
+            <p className="text-indigo-400 font-bold text-lg">${value.toFixed(2)}</p>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
 
   // Process transaction data to group by month for the selected year
   useEffect(() => {
@@ -60,19 +83,14 @@ export default function MonthlyExpensesChart() {
     }));
     
     setChartData(data);
+    // Reset active index when year changes
+    setActiveIndex(null);
   }, [transactions, selectedYear]);
 
   // Calculate total expenses for the year
   const totalYearlyExpenses = useMemo(() => {
     return chartData.reduce((total, item) => total + item.amount, 0);
   }, [chartData]);
-
-  const formatTooltipValue = (value: ValueType) => {
-    if (typeof value === 'number') {
-      return [`$${value.toFixed(2)}`, 'Amount'];
-    }
-    return [value, 'Amount'];
-  };
 
   // Get available years from transactions for the dropdown
   const availableYears = useMemo(() => {
@@ -96,6 +114,18 @@ export default function MonthlyExpensesChart() {
     
     return Array.from(years).sort((a, b) => b - a); // Sort descending (newest first)
   }, [transactions, currentYear]);
+
+  // Handle bar click
+  const handleBarClick = (data: any, index: number) => {
+    setActiveIndex(index === activeIndex ? null : index);
+  };
+
+  // Handle chart click
+  const handleChartClick = (data: any) => {
+    if (data && typeof data.activeTooltipIndex === 'number') {
+      handleBarClick(data, data.activeTooltipIndex);
+    }
+  };
 
   if (loading) {
     return (
@@ -124,7 +154,7 @@ export default function MonthlyExpensesChart() {
             </select>
           </div>
           <div className="text-sm font-medium">
-            Total: <span className="text-blue-600">${totalYearlyExpenses.toFixed(2)}</span>
+            Total: <span className="text-indigo-400">${totalYearlyExpenses.toFixed(2)}</span>
           </div>
         </div>
       </div>
@@ -132,7 +162,6 @@ export default function MonthlyExpensesChart() {
       <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
-            
             data={chartData}
             margin={{
               top: 5,
@@ -140,16 +169,36 @@ export default function MonthlyExpensesChart() {
               left: 20,
               bottom: 5
             }}
+            onClick={handleChartClick}
           >
-            <CartesianGrid strokeDasharray="2 2" stroke="#ffffff30"  />
-            <XAxis dataKey="month" />
-            
+            <CartesianGrid strokeDasharray="2 2" stroke="#ffffff30" />
+            <XAxis dataKey="month" stroke="#ffffff80" />
+            <YAxis stroke="#ffffff80" width={window.screen.width<600?15:50}/>
             <Tooltip 
-              formatter={formatTooltipValue}
-              labelFormatter={(label) => `Month: ${label}`}
+              content={<CustomTooltip />}
+              cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
             />
-            <Legend />
-            <Bar dataKey="amount" name="Expenses" fill="#8884d8" />
+            <Legend wrapperStyle={{ color: '#ffffff' }} />
+            <Bar 
+              dataKey="amount" 
+              name="Expenses" 
+              radius={[4, 4, 0, 0]} // Rounded corners on top
+              strokeWidth={0} // Remove outline
+              cursor="pointer"
+            >
+              {chartData.map((entry, index) => (
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={index === activeIndex ? activeBarColor : barColor}
+                  style={{ 
+                    filter: index === activeIndex 
+                      ? 'drop-shadow(0 0 8px rgba(99, 102, 241, 0.8))' 
+                      : 'none',
+                    transition: 'fill 0.3s, filter 0.3s'
+                  }}
+                />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>
