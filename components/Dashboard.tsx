@@ -2,12 +2,24 @@
 
 import { useTransactionContext } from "@/context/TransactionContext";
 import { getCategoryById } from "@/types/Categories";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import gsap from "gsap";
 
 export default function Dashboard() {
   const { transactions } = useTransactionContext();
+  
+  // State for animated values
+  const [animatedTotal, setAnimatedTotal] = useState(0);
+  const [animatedMonthly, setAnimatedMonthly] = useState(0);
+  const [animatedAverage, setAnimatedAverage] = useState(0);
+  
+  // Refs for animation targets
+  const summaryCardsRef = useRef<HTMLDivElement>(null);
+  const topCategoriesRef = useRef<HTMLDivElement>(null);
+  const recentTransactionsRef = useRef<HTMLDivElement>(null);
+  const dashboardRef = useRef<HTMLDivElement>(null);
 
-  // Calculate total expenses
+  // Calculate values for display
   const totalExpenses = useMemo(() => {
     return transactions.reduce((sum, transaction) => sum + transaction.amount, 0);
   }, [transactions]);
@@ -28,6 +40,170 @@ export default function Dashboard() {
       })
       .reduce((sum, transaction) => sum + transaction.amount, 0);
   }, [transactions]);
+
+  // Calculate average monthly expenses
+  const averageMonthlyExpenses = useMemo(() => {
+    return totalExpenses / (getUniqueMonthCount(transactions) || 1);
+  }, [totalExpenses, transactions]);
+
+  // Initialize animations
+  useEffect(() => {
+    // Set initial state for the entire dashboard (slightly scaled down and faded)
+    gsap.set(dashboardRef.current, { opacity: 0, scale: 0.98 });
+    
+    // Create a master timeline
+    const masterTl = gsap.timeline({ defaults: { ease: "power3.out" } });
+    
+    // Animate the entire dashboard container first
+    masterTl.to(dashboardRef.current, { 
+      opacity: 1, 
+      scale: 1, 
+      duration: 0.6,
+      clearProps: "scale" // Clear the scale prop after animation to avoid layout issues
+    });
+    
+    // Create a timeline for staggered animations
+    const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+    
+    // Animate summary cards with a subtle bounce effect
+    tl.fromTo(
+      summaryCardsRef.current?.children || [],
+      { x: -300, opacity: 0,rotate: -20, scale: 0.8 },
+      { 
+        x: 0, 
+        rotate: 0,
+        opacity: 1, 
+        scale: 1,
+        stagger: 0.3, 
+        duration: 0.8,
+        ease: "back.out(1.2)" 
+      },
+      0
+    );
+    
+    // Animate top categories
+    tl.fromTo(
+      topCategoriesRef.current,
+      { y: 300, opacity: 0 },
+      { y: 0, opacity: 1, duration: 1.2, ease: "back.out(1.5)" },
+      "+=0.01" // Wait for previous animation to complete before starting
+    );
+    
+    // Animate recent transactions
+    tl.fromTo(
+      recentTransactionsRef.current,
+      { x: 200, opacity: 0,rotate: 20, rotateY: 20},
+      { x: 0,  opacity: 1,rotate: 0, rotateY: 0, duration: 0.8,ease: "back.out(1.2)"},
+      "+=0.01"
+    );
+    
+    // Animate category items
+    tl.fromTo(
+      ".category-item",
+      { y: 20, opacity: 0 },
+      { y: 0, opacity: 1, stagger: 0.1, duration: 0.6 },
+      0.4
+    );
+    
+    // Animate transaction items with a slight delay between each
+    tl.fromTo(
+      ".transaction-item",
+      { y: 15, opacity: 0 },
+      { y: 0, opacity: 1, stagger: 0.08, duration: 0.6 },
+      0.5
+    );
+    
+    // Add subtle pulse animation to the total expenses card
+    tl.fromTo(
+      ".total-expenses-card",
+      { boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" },
+      { 
+        boxShadow: "0 6px 12px rgba(0, 0, 0, 0.15)", 
+        repeat: 1, 
+        yoyo: true, 
+        duration: 1.2 
+      },
+      1
+    );
+    
+    // Add the content animations to the master timeline
+    masterTl.add(tl, 0.2);
+    
+    // Animate counter values
+    const counterObj = { 
+      total: 0, 
+      monthly: 0, 
+      average: 0 
+    };
+    
+    masterTl.to(counterObj, {
+      total: totalExpenses,
+      monthly: currentMonthExpenses,
+      average: averageMonthlyExpenses,
+      duration: 1.5,
+      ease: "power2.out",
+      onUpdate: () => {
+        setAnimatedTotal(Math.round(counterObj.total));
+        setAnimatedMonthly(Math.round(counterObj.monthly));
+        setAnimatedAverage(Math.round(counterObj.average));
+      },
+      delay: 0.3
+    });
+    if(summaryCardsRef.current){
+      summaryCardsRef.current.onmousemove = (e) => {
+        const rect = summaryCardsRef.current?.getBoundingClientRect();
+        if(rect){
+          const x = e.clientX - rect.left - rect.width/2;
+          const y = e.clientY - rect.top - rect.height/2;
+          gsap.to(summaryCardsRef.current, {
+            rotationX: -y / 300,
+            rotationY: x / 300,
+            duration: 0.5,
+            ease: "power2.out"
+          });
+        }
+      }
+      summaryCardsRef.current.onmouseleave = () => {
+        gsap.to(summaryCardsRef.current, {
+          rotationX: 0,
+          rotationY: 0,
+          duration: 0.5,
+          ease: "power2.out"
+        });
+      }
+    }
+
+    if(recentTransactionsRef.current){
+      recentTransactionsRef.current.onmousemove = (e) => {
+        const rect = recentTransactionsRef.current?.getBoundingClientRect();
+        if(rect){
+        const x = e.clientX - rect.left - rect.width/2;
+        const y = e.clientY - rect.top - rect.height/2;
+        console.log(x,y);
+        gsap.to(recentTransactionsRef.current, {
+          rotationX: -y / 300,
+          rotationY: x / 300,
+          duration: 0.5,
+          ease: "power2.out"
+        });
+        }
+      }
+      recentTransactionsRef.current.onmouseleave = () => {
+        gsap.to(recentTransactionsRef.current, {
+          rotationX: 0,
+          rotationY: 0,
+          duration: 0.5,
+          ease: "power2.out"
+        });
+      }
+     
+    }
+    return () => {
+      // Clean up animations
+      masterTl.kill();
+      tl.kill();
+    };
+  }, [totalExpenses, currentMonthExpenses, averageMonthlyExpenses]);
 
   // Calculate previous month expenses
   const previousMonthExpenses = useMemo(() => {
@@ -91,46 +267,46 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="grid gap-6">
+    <div ref={dashboardRef} className="grid gap-6 md:grid-cols-3 p-4 h-full overflow-hidden" style={{perspective: "200px"}}>
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div ref={summaryCardsRef} className="grid grid-cols-1 md:grid-cols-1 gap-4">
         {/* Total Expenses Card */}
-        <div className="p-4 bg-white rounded-lg shadow-sm border">
-          <h3 className="text-sm font-medium text-gray-500">Total Expenses</h3>
-          <p className="text-2xl font-bold mt-1">{formatCurrency(totalExpenses)}</p>
-          <p className="text-xs text-gray-500 mt-2">Lifetime total</p>
+        <div className="p-4 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-lg shadow-sm text-white total-expenses-card">
+          <h3 className="text-sm font-medium text-white">Total Expenses</h3>
+          <p className="text-2xl font-bold mt-1">{formatCurrency(animatedTotal)}</p>
+          <p className="text-xs text-white mt-2">Lifetime total</p>
         </div>
         
         {/* Current Month Card */}
-        <div className="p-4 bg-white rounded-lg shadow-sm border">
-          <h3 className="text-sm font-medium text-gray-500">This Month</h3>
-          <p className="text-2xl font-bold mt-1">{formatCurrency(currentMonthExpenses)}</p>
+        <div className="p-4 bg-white/5 text-white rounded-lg shadow-sm hover:shadow-lg hover:scale-[1.32] transition-[shadow,scale] duration-300">
+          <h3 className="text-sm font-medium ">This Month</h3>
+          <p className="text-2xl font-bold mt-1">{formatCurrency(animatedMonthly)}</p>
           <div className="flex items-center mt-2">
             <span 
               className={`text-xs ${monthOverMonthChange >= 0 ? 'text-red-500' : 'text-green-500'}`}
             >
               {monthOverMonthChange >= 0 ? '↑' : '↓'} {Math.abs(monthOverMonthChange).toFixed(1)}%
             </span>
-            <span className="text-xs text-gray-500 ml-1">vs last month</span>
+            <span className="text-xs ml-1">vs last month</span>
           </div>
         </div>
         
         {/* Average Monthly Card */}
-        <div className="p-4 bg-white rounded-lg shadow-sm border">
+        <div className="p-4 bg-white/5 text-white rounded-lg shadow-sm ">
           <h3 className="text-sm font-medium text-gray-500">Average Monthly</h3>
           <p className="text-2xl font-bold mt-1">
-            {formatCurrency(totalExpenses / (getUniqueMonthCount(transactions) || 1))}
+            {formatCurrency(animatedAverage)}
           </p>
           <p className="text-xs text-gray-500 mt-2">Based on your history</p>
         </div>
       </div>
       
       {/* Top Categories */}
-      <div className="bg-white rounded-lg shadow-sm border p-4">
+      <div ref={topCategoriesRef} className="bg-white/5 text-white rounded-lg shadow-sm p-4 ">
         <h3 className="font-medium mb-3">Top Spending Categories</h3>
         <div className="space-y-3">
           {topCategories.map(category => (
-            <div key={category.id} className="flex items-center justify-between">
+            <div key={category.id} className="flex items-center justify-between category-item">
               <div className="flex items-center">
                 <div 
                   className="w-3 h-3 rounded-full mr-2" 
@@ -145,13 +321,13 @@ export default function Dashboard() {
       </div>
       
       {/* Recent Transactions */}
-      <div className="bg-white rounded-lg shadow-sm border p-4">
-        <h3 className="font-medium mb-3">Recent Transactions</h3>
+      <div ref={recentTransactionsRef} className="bg-white/7 text-white rounded-lg shadow-sm  p-4">
+        <h3 className="font-medium mb-3 text-purple-400 border-b-1 border-white/10 pb-2">Recent Transactions</h3>
         <div className="space-y-2">
           {recentTransactions.map((transaction, index) => {
             const category = getCategoryById(transaction.category);
             return (
-              <div key={index} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+              <div key={index} className="flex items-center justify-between p-2 transition-all duration-300 hover:bg-white/9 rounded transaction-item">
                 <div>
                   <p className="font-medium">{transaction.description}</p>
                   <div className="flex items-center">

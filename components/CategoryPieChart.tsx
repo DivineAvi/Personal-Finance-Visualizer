@@ -2,7 +2,7 @@
 
 import { useTransactionContext } from "@/context/TransactionContext";
 import { CATEGORIES, getCategoryById } from "@/types/Categories";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   PieChart,
   Pie,
@@ -20,28 +20,41 @@ type CategoryTotal = {
 };
 
 export default function CategoryPieChart() {
-  const { transactions } = useTransactionContext();
+  const { transactions, loading } = useTransactionContext();
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [chartData, setChartData] = useState<CategoryTotal[]>([]);
+  const [totalExpenses, setTotalExpenses] = useState(0);
   
   // Get all available years from transactions
   const years = useMemo(() => {
     const yearsSet = new Set<number>();
-    transactions.forEach(transaction => {
-      const year = new Date(transaction.date).getFullYear();
-      yearsSet.add(year);
-    });
-    return Array.from(yearsSet).sort();
+    const currentYear = new Date().getFullYear();
+    yearsSet.add(currentYear); // Always include current year
+    
+    if (transactions && transactions.length > 0) {
+      transactions.forEach(transaction => {
+        try {
+          const year = new Date(transaction.date).getFullYear();
+          if (!isNaN(year)) {
+            yearsSet.add(year);
+          }
+        } catch (error) {
+          console.error("Error extracting year:", error, transaction);
+        }
+      });
+    }
+    return Array.from(yearsSet).sort((a, b) => b - a); // Sort descending (newest first)
   }, [transactions]);
   
   // Set default year if not selected
-  useMemo(() => {
+  useEffect(() => {
     if (years.length > 0 && !selectedYear) {
-      setSelectedYear(years[years.length - 1]); // Default to most recent year
+      setSelectedYear(years[0]); // Default to most recent year
     }
   }, [years, selectedYear]);
 
   // Process transaction data to group by category
-  const categoryData = useMemo(() => {
+  useEffect(() => {
     const categoryTotals: Record<string, number> = {};
     
     // Initialize all categories with zero
@@ -50,16 +63,22 @@ export default function CategoryPieChart() {
     });
     
     // Sum transactions by category for the selected year
-    transactions.forEach(transaction => {
-      const transactionYear = new Date(transaction.date).getFullYear();
-      if (!selectedYear || transactionYear === selectedYear) {
-        categoryTotals[transaction.category] = 
-          (categoryTotals[transaction.category] || 0) + transaction.amount;
-      }
-    });
+    if (transactions && transactions.length > 0) {
+      transactions.forEach(transaction => {
+        try {
+          const transactionYear = new Date(transaction.date).getFullYear();
+          if (!selectedYear || transactionYear === selectedYear) {
+            categoryTotals[transaction.category] = 
+              (categoryTotals[transaction.category] || 0) + Number(transaction.amount);
+          }
+        } catch (error) {
+          console.error("Error processing transaction for pie chart:", error, transaction);
+        }
+      });
+    }
     
     // Convert to array format for Recharts and filter out zero values
-    return Object.keys(categoryTotals)
+    const data = Object.keys(categoryTotals)
       .map(id => {
         const category = getCategoryById(id);
         return {
@@ -70,12 +89,13 @@ export default function CategoryPieChart() {
         };
       })
       .filter(item => item.value > 0);
+    
+    setChartData(data);
+    
+    // Calculate total expenses
+    const total = data.reduce((sum, item) => sum + item.value, 0);
+    setTotalExpenses(total);
   }, [transactions, selectedYear]);
-
-  // Calculate total expenses
-  const totalExpenses = useMemo(() => {
-    return categoryData.reduce((sum, item) => sum + item.value, 0);
-  }, [categoryData]);
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -92,6 +112,16 @@ export default function CategoryPieChart() {
     }
     return null;
   };
+
+  if (loading) {
+    return (
+      <div className="w-full p-4 border rounded-lg shadow-sm bg-white">
+        <div className="flex justify-center items-center h-80">
+          <p>Loading chart data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full p-4 border rounded-lg shadow-sm bg-white">
@@ -115,11 +145,11 @@ export default function CategoryPieChart() {
       </div>
       
       <div className="h-80">
-        {categoryData.length > 0 ? (
+        {chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={categoryData}
+                data={chartData}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
@@ -127,7 +157,7 @@ export default function CategoryPieChart() {
                 fill="#8884d8"
                 dataKey="value"
               >
-                {categoryData.map((entry, index) => (
+                {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
@@ -143,7 +173,7 @@ export default function CategoryPieChart() {
       </div>
       
       <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-        {categoryData.map((category) => (
+        {chartData.map((category) => (
           <div 
             key={category.id} 
             className="flex items-center justify-between p-2 rounded"

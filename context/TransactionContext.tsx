@@ -1,120 +1,141 @@
-import React, { createContext, useState } from "react";
+"use client";
+
+import React, { createContext, useState, useContext, useEffect } from "react";
 import { TransactionType } from "../types/Transactions";
 
 export interface TransactionContextType {
   transactions: TransactionType[];
-  addTransaction: (transaction: TransactionType) => void;
-  editTransaction: (index: number, transaction: TransactionType) => void;
-  deleteTransaction: (index: number) => void;
+  addTransaction: (transaction: TransactionType) => Promise<void>;
+  editTransaction: (id: string, transaction: TransactionType) => Promise<void>;
+  deleteTransaction: (id: string) => Promise<void>;
+  loading: boolean;
+  error: string | null;
 }
 
 const TransactionContext = createContext<TransactionContextType>({
   transactions: [],
-  addTransaction: () => {},
-  editTransaction: () => {},
-  deleteTransaction: () => {},
+  addTransaction: async () => {},
+  editTransaction: async () => {},
+  deleteTransaction: async () => {},
+  loading: false,
+  error: null,
 });
 
 export const TransactionProvider = ({ children }: { children: React.ReactNode }): React.ReactElement => {
-  // Initialize with sample data across different months
-  const [transactions, setTransactions] = useState<TransactionType[]>([
-    {
-      date: "2023-01-15",
-      amount: 120,
-      description: "Grocery Shopping",
-      category: "groceries"
-    },
-    {
-      date: "2023-02-05",
-      amount: 50,
-      description: "Gas Station",
-      category: "transportation"
-    },
-    {
-      date: "2023-02-20",
-      amount: 200,
-      description: "Electricity Bill",
-      category: "utilities"
-    },
-    {
-      date: "2023-03-10",
-      amount: 80,
-      description: "Internet Bill",
-      category: "utilities"
-    },
-    {
-      date: "2023-04-05",
-      amount: 150,
-      description: "Dinner with friends",
-      category: "dining"
-    },
-    {
-      date: "2023-05-15",
-      amount: 300,
-      description: "Car Repair",
-      category: "transportation"
-    },
-    {
-      date: "2023-06-01",
-      amount: 75,
-      description: "Pharmacy",
-      category: "healthcare"
-    },
-    {
-      date: "2023-07-12",
-      amount: 220,
-      description: "New Clothes",
-      category: "shopping"
-    },
-    {
-      date: "2023-08-20",
-      amount: 180,
-      description: "Concert Tickets",
-      category: "entertainment"
-    },
-    {
-      date: "2023-09-05",
-      amount: 90,
-      description: "Books",
-      category: "education"
-    },
-    {
-      date: "2023-10-10",
-      amount: 250,
-      description: "Home Supplies",
-      category: "housing"
-    },
-    {
-      date: "2023-11-25",
-      amount: 400,
-      description: "Flight Tickets",
-      category: "travel"
-    },
-    {
-      date: "2023-12-15",
-      amount: 350,
-      description: "Holiday Gifts",
-      category: "shopping"
+  const [transactions, setTransactions] = useState<(TransactionType & { _id?: string })[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch transactions from API
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/transactions');
+        const result = await response.json();
+        
+        if (result.success) {
+          setTransactions(result.data);
+        } else {
+          setError('Failed to fetch transactions');
+        }
+      } catch (err) {
+        setError('Error connecting to the server');
+        console.error('Error fetching transactions:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTransactions();
+  }, []);
+
+  const addTransaction = async (transaction: TransactionType) => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/transactions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(transaction),
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setTransactions(prev => [...prev, result.data]);
+      } else {
+        setError('Failed to add transaction');
+      }
+    } catch (err) {
+      setError('Error connecting to the server');
+      console.error('Error adding transaction:', err);
+    } finally {
+      setLoading(false);
     }
-  ]);
-
-  const addTransaction = (transaction: TransactionType) => {
-    setTransactions(prev => [...prev, transaction]);
   };
 
-  const editTransaction = (index: number, transaction: TransactionType) => {
-    setTransactions(prev =>
-      prev.map((t, i) => (i === index ? transaction : t))
-    );
+  const editTransaction = async (id: string, transaction: TransactionType) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/transactions/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(transaction),
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setTransactions(prev =>
+          prev.map(t => (t._id === id ? result.data : t))
+        );
+      } else {
+        setError('Failed to update transaction');
+      }
+    } catch (err) {
+      setError('Error connecting to the server');
+      console.error('Error updating transaction:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const deleteTransaction = (index: number) => {
-    setTransactions(prev => prev.filter((_, i) => i !== index));
+  const deleteTransaction = async (id: string) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/transactions/${id}`, {
+        method: 'DELETE',
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setTransactions(prev => prev.filter(t => t._id !== id));
+      } else {
+        setError('Failed to delete transaction');
+      }
+    } catch (err) {
+      setError('Error connecting to the server');
+      console.error('Error deleting transaction:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <TransactionContext.Provider
-      value={{ transactions, addTransaction, editTransaction, deleteTransaction }}
+      value={{ 
+        transactions, 
+        addTransaction, 
+        editTransaction, 
+        deleteTransaction,
+        loading,
+        error
+      }}
     >
       {children}
     </TransactionContext.Provider>
@@ -123,7 +144,7 @@ export const TransactionProvider = ({ children }: { children: React.ReactNode })
 
 export default TransactionContext;
 export const useTransactionContext = () => {
-  const context = React.useContext(TransactionContext);
+  const context = useContext(TransactionContext);
   if (!context) {
     throw new Error("useTransactionContext must be used within a TransactionProvider");
   }

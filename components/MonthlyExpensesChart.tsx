@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransactionContext } from "@/context/TransactionContext";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -21,12 +21,13 @@ type MonthlyExpense = {
 };
 
 export default function MonthlyExpensesChart() {
-  const { transactions } = useTransactionContext();
+  const { transactions, loading } = useTransactionContext();
   const currentYear = new Date().getFullYear();
-  const [selectedYear, setSelectedYear] = useState(2023); // Default to 2023 for demo data
+  const [selectedYear, setSelectedYear] = useState(currentYear); // Default to current year
+  const [chartData, setChartData] = useState<MonthlyExpense[]>([]);
 
   // Process transaction data to group by month for the selected year
-  const monthlyData = useMemo(() => {
+  useEffect(() => {
     const monthlyExpenses: Record<string, number> = {};
     
     // Initialize all months with zero
@@ -36,27 +37,35 @@ export default function MonthlyExpensesChart() {
     });
     
     // Sum transactions by month for the selected year
-    transactions.forEach(transaction => {
-      const date = new Date(transaction.date);
-      const year = date.getFullYear();
-      
-      if (year === selectedYear) {
-        const monthName = months[date.getMonth()];
-        monthlyExpenses[monthName] += transaction.amount;
-      }
-    });
+    if (transactions && transactions.length > 0) {
+      transactions.forEach(transaction => {
+        try {
+          const date = new Date(transaction.date);
+          const year = date.getFullYear();
+          
+          if (year === selectedYear) {
+            const monthName = months[date.getMonth()];
+            monthlyExpenses[monthName] += Number(transaction.amount);
+          }
+        } catch (error) {
+          console.error("Error processing transaction:", error, transaction);
+        }
+      });
+    }
     
     // Convert to array format for Recharts
-    return months.map(month => ({
+    const data = months.map(month => ({
       month,
       amount: monthlyExpenses[month]
     }));
+    
+    setChartData(data);
   }, [transactions, selectedYear]);
 
   // Calculate total expenses for the year
   const totalYearlyExpenses = useMemo(() => {
-    return monthlyData.reduce((total, item) => total + item.amount, 0);
-  }, [monthlyData]);
+    return chartData.reduce((total, item) => total + item.amount, 0);
+  }, [chartData]);
 
   const formatTooltipValue = (value: ValueType) => {
     if (typeof value === 'number') {
@@ -68,12 +77,35 @@ export default function MonthlyExpensesChart() {
   // Get available years from transactions for the dropdown
   const availableYears = useMemo(() => {
     const years = new Set<number>();
-    transactions.forEach(transaction => {
-      const year = new Date(transaction.date).getFullYear();
-      years.add(year);
-    });
-    return Array.from(years).sort();
-  }, [transactions]);
+    
+    // Always include current year
+    years.add(currentYear);
+    
+    if (transactions && transactions.length > 0) {
+      transactions.forEach(transaction => {
+        try {
+          const year = new Date(transaction.date).getFullYear();
+          if (!isNaN(year)) {
+            years.add(year);
+          }
+        } catch (error) {
+          console.error("Error extracting year:", error, transaction);
+        }
+      });
+    }
+    
+    return Array.from(years).sort((a, b) => b - a); // Sort descending (newest first)
+  }, [transactions, currentYear]);
+
+  if (loading) {
+    return (
+      <div className="w-full p-4 border rounded-lg shadow-sm bg-white">
+        <div className="flex justify-center items-center h-80">
+          <p>Loading chart data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full p-4 border rounded-lg shadow-sm bg-white">
@@ -100,7 +132,7 @@ export default function MonthlyExpensesChart() {
       <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
-            data={monthlyData}
+            data={chartData}
             margin={{
               top: 5,
               right: 30,

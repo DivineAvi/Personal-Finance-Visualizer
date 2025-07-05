@@ -9,7 +9,7 @@ interface TransactionFormProps {
     onSuccess?: () => void;
     mode?: "Add" | "Edit";
     initialData?: TransactionType;
-    editIndex?: number;
+    editIndex?: string; // Changed from number to string for MongoDB _id
 }
 
 export default function TransactionForm({ 
@@ -49,28 +49,32 @@ export default function TransactionForm({
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         
         if (validateForm()) {
             const transaction = formData as TransactionType;
             
-            if (mode === "Edit" && editIndex !== undefined) {
-                editTransaction(editIndex, transaction);
-            } else {
-                addTransaction(transaction);
-            }
-            
-            // Reset form after submission
-            setFormData({
-                amount: 0,
-                date: new Date().toISOString().split('T')[0],
-                description: '',
-                category: ''
-            });
-            
-            if (onSuccess) {
-                onSuccess();
+            try {
+                if (mode === "Edit" && editIndex !== undefined) {
+                    await editTransaction(editIndex, transaction);
+                } else {
+                    await addTransaction(transaction);
+                }
+                
+                // Reset form after submission
+                setFormData({
+                    amount: 0,
+                    date: new Date().toISOString().split('T')[0],
+                    description: '',
+                    category: ''
+                });
+                
+                if (onSuccess) {
+                    onSuccess();
+                }
+            } catch (error) {
+                console.error("Error submitting transaction:", error);
             }
         }
     };
