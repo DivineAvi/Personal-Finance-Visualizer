@@ -11,6 +11,7 @@ export default function Dashboard() {
   const [animatedTotal, setAnimatedTotal] = useState(0);
   const [animatedMonthly, setAnimatedMonthly] = useState(0);
   const [animatedAverage, setAnimatedAverage] = useState(0);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   
   const summaryCardsRef = useRef<HTMLDivElement>(null);
   const topCategoriesRef = useRef<HTMLDivElement>(null);
@@ -41,7 +42,9 @@ export default function Dashboard() {
     return totalExpenses / (getUniqueMonthCount(transactions) || 1);
   }, [totalExpenses, transactions]);
 
+  // Initial layout and UI animations - runs only once
   useEffect(() => {
+
     gsap.set(dashboardRef.current, { opacity: 0, scale: 0.98 });
     
     const masterTl = gsap.timeline({ defaults: { ease: "power3.out" } });
@@ -112,25 +115,6 @@ export default function Dashboard() {
     
     masterTl.add(tl, 0.2);
     
-    const counterObj = { 
-      total: 0, 
-      monthly: 0, 
-      average: 0 
-    };
-    
-    masterTl.to(counterObj, {
-      total: totalExpenses,
-      monthly: currentMonthExpenses,
-      average: averageMonthlyExpenses,
-      duration: 1.5,
-      ease: "power2.out",
-      onUpdate: () => {
-        setAnimatedTotal(Math.round(counterObj.total));
-        setAnimatedMonthly(Math.round(counterObj.monthly));
-        setAnimatedAverage(Math.round(counterObj.average));
-      },
-      delay: 0.3
-    });
     if(summaryCardsRef.current){
       summaryCardsRef.current.onmousemove = (e) => {
         const rect = summaryCardsRef.current?.getBoundingClientRect();
@@ -178,13 +162,75 @@ export default function Dashboard() {
           ease: "power2.out"
         });
       }
-     
     }
+    
+    setInitialLoadComplete(true);
+    
     return () => {
       masterTl.kill();
       tl.kill();
     };
-  }, [totalExpenses, currentMonthExpenses, averageMonthlyExpenses]);
+  }, []);
+  
+  useEffect(() => {
+    if (!initialLoadComplete) return;
+    
+    const tl = gsap.timeline();
+    const counterObj = { value: animatedTotal };
+    
+    tl.to(counterObj, {
+      value: totalExpenses,
+      duration: 1,
+      ease: "power2.out",
+      onUpdate: () => {
+        setAnimatedTotal(Math.round(counterObj.value));
+      }
+    });
+    
+    return () => {
+      tl.kill();
+    };
+  }, [totalExpenses, initialLoadComplete]);
+  
+  useEffect(() => {
+    if (!initialLoadComplete) return;
+    
+    const tl = gsap.timeline();
+    const counterObj = { value: animatedMonthly };
+    
+    tl.to(counterObj, {
+      value: currentMonthExpenses,
+      duration: 1,
+      ease: "power2.out",
+      onUpdate: () => {
+        setAnimatedMonthly(Math.round(counterObj.value));
+      }
+    });
+    
+    return () => {
+      tl.kill();
+    };
+  }, [currentMonthExpenses, initialLoadComplete]);
+  
+  useEffect(() => {
+    if (!initialLoadComplete) return;
+    
+    const tl = gsap.timeline();
+    const counterObj = { value: animatedAverage };
+    
+    tl.to(counterObj, {
+      value: averageMonthlyExpenses,
+      duration: 1,
+      ease: "power2.out",
+      onUpdate: () => {
+        setAnimatedAverage(Math.round(counterObj.value));
+      }
+    });
+    
+    return () => {
+      tl.kill();
+    };
+  }, [averageMonthlyExpenses, initialLoadComplete]);
 
   const previousMonthExpenses = useMemo(() => {
     const now = new Date();
