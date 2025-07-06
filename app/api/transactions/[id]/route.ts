@@ -3,15 +3,16 @@ import dbConnect from '@/lib/mongodb';
 import Transaction from '@/models/Transaction';
 
 interface Params {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function GET(request: Request, { params }: Params) {
   try {
     await dbConnect();
-    const transaction = await Transaction.findById(params.id);
+    const { id } = await params;
+    const transaction = await Transaction.findById(id);
     
     if (!transaction) {
       return NextResponse.json({ success: false, error: 'Transaction not found' }, { status: 404 });
@@ -28,9 +29,9 @@ export async function PUT(request: Request, { params }: Params) {
   try {
     const body = await request.json();
     await dbConnect();
-    
+    const { id } = await params;
     const transaction = await Transaction.findByIdAndUpdate(
-      params.id,
+      id,
       body,
       { new: true, runValidators: true }
     );
@@ -49,7 +50,8 @@ export async function PUT(request: Request, { params }: Params) {
 export async function DELETE(request: Request, { params }: Params) {
   try {
     await dbConnect();
-    const transaction = await Transaction.findByIdAndDelete(params.id);
+    const { id } = await params;
+    const transaction = await Transaction.findByIdAndDelete(id);
     
     if (!transaction) {
       return NextResponse.json({ success: false, error: 'Transaction not found' }, { status: 404 });

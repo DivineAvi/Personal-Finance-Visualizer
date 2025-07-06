@@ -1,17 +1,17 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Budget from '@/models/Budget';
-
 interface Params {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function GET(request: Request, { params }: Params) {
   try {
     await dbConnect();
-    const budget = await Budget.findById(params.id);
+    const { id } = await params;
+    const budget = await Budget.findById(id);
     
     if (!budget) {
       return NextResponse.json({ success: false, error: 'Budget not found' }, { status: 404 });
@@ -28,9 +28,9 @@ export async function PUT(request: Request, { params }: Params) {
   try {
     const body = await request.json();
     await dbConnect();
-    
+    const { id } = await params;
     const budget = await Budget.findByIdAndUpdate(
-      params.id,
+      id,
       body,
       { new: true, runValidators: true }
     );
@@ -49,7 +49,8 @@ export async function PUT(request: Request, { params }: Params) {
 export async function DELETE(request: Request, { params }: Params) {
   try {
     await dbConnect();
-    const budget = await Budget.findByIdAndDelete(params.id);
+    const { id } = await params;
+    const budget = await Budget.findByIdAndDelete(id);
     
     if (!budget) {
       return NextResponse.json({ success: false, error: 'Budget not found' }, { status: 404 });
