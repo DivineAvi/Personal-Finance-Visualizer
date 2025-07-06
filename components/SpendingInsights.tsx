@@ -162,7 +162,7 @@ export default function SpendingInsights() {
       <h2 className="text-xl font-semibold mb-4">Spending Insights</h2>
       
       <div className="space-y-6">
-        <div className="p-4 bg-indigo-500/80 rounded-lg relative hover:scale-103 shadow-lg transition-all duration-300">
+        <div className="p-4 bg-indigo-500/80 rounded-lg relative shadow-[0_0_20px_5px_rgba(0,0,0,0.5)] shadow-lg transition-all duration-300">
           <h3 className="font-medium text-white mb-2">Monthly Comparison</h3>
           <p className="mb-1">
             This month: <span className="font-medium">{formatCurrency(insights.currentMonthSpent)}</span>
@@ -171,7 +171,7 @@ export default function SpendingInsights() {
             Last month: <span className="font-medium">{formatCurrency(insights.previousMonthSpent)}</span>
           </p>
           {insights.monthOverMonthChange !== 0 && (
-            <p className={`text-sm ${insights.monthOverMonthChange > 0 ? 'text-red-500 font-bold bg-black/70 w-fit px-2 py-1 rounded-md' : 'text-green-600'}`}>
+            <p className={`absolute hover:scale-105 transition-all duration-300 left-1/2 whitespace-nowrap -translate-x-1/2 text-sm ${insights.monthOverMonthChange > 0 ? 'text-red-500 bg-white w-fit px-2 py-1 rounded-md' : 'text-green-600'}`}>
               {insights.monthOverMonthChange > 0 ? '↑' : '↓'} {Math.abs(insights.monthOverMonthChange).toFixed(1)}% 
               {insights.monthOverMonthChange > 0 ? ' increase' : ' decrease'} from last month
             </p>

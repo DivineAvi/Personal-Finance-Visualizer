@@ -182,11 +182,11 @@ export default function BudgetVsActualChart() {
         )}
       </div>
       
-      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 sm:grid-cols-2 gap-4">
+      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 sm:grid-cols-2 gap-6">
         {chartData.map((item) => (
           <div 
             key={item.categoryId} 
-            className=" bg-white/4 rounded p-3"
+            className=" bg-white/4 rounded p-3 shadow-lg hover:scale-101 transition-all ease-in-out duration-300 hover:shadow-[0_0_20px_5px_rgba(0,0,0,0.5)]"
           >
             <div className="flex justify-between items-center mb-1">
               <h3 className="font-medium">{item.name}</h3>
