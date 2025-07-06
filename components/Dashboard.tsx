@@ -8,23 +8,19 @@ import gsap from "gsap";
 export default function Dashboard() {
   const { transactions } = useTransactionContext();
   
-  // State for animated values
   const [animatedTotal, setAnimatedTotal] = useState(0);
   const [animatedMonthly, setAnimatedMonthly] = useState(0);
   const [animatedAverage, setAnimatedAverage] = useState(0);
   
-  // Refs for animation targets
   const summaryCardsRef = useRef<HTMLDivElement>(null);
   const topCategoriesRef = useRef<HTMLDivElement>(null);
   const recentTransactionsRef = useRef<HTMLDivElement>(null);
   const dashboardRef = useRef<HTMLDivElement>(null);
 
-  // Calculate values for display
   const totalExpenses = useMemo(() => {
     return transactions.reduce((sum, transaction) => sum + transaction.amount, 0);
   }, [transactions]);
 
-  // Calculate current month expenses
   const currentMonthExpenses = useMemo(() => {
     const now = new Date();
     const currentMonth = now.getMonth();
@@ -41,31 +37,24 @@ export default function Dashboard() {
       .reduce((sum, transaction) => sum + transaction.amount, 0);
   }, [transactions]);
 
-  // Calculate average monthly expenses
   const averageMonthlyExpenses = useMemo(() => {
     return totalExpenses / (getUniqueMonthCount(transactions) || 1);
   }, [totalExpenses, transactions]);
 
-  // Initialize animations
   useEffect(() => {
-    // Set initial state for the entire dashboard (slightly scaled down and faded)
     gsap.set(dashboardRef.current, { opacity: 0, scale: 0.98 });
     
-    // Create a master timeline
     const masterTl = gsap.timeline({ defaults: { ease: "power3.out" } });
     
-    // Animate the entire dashboard container first
     masterTl.to(dashboardRef.current, { 
       opacity: 1, 
       scale: 1, 
       duration: 0.6,
-      clearProps: "scale" // Clear the scale prop after animation to avoid layout issues
+      clearProps: "scale"
     });
     
-    // Create a timeline for staggered animations
     const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
     
-    // Animate summary cards with a subtle bounce effect
     tl.fromTo(
       summaryCardsRef.current?.children || [],
       { x: -300, opacity: 0,rotate: -20, scale: 0.8 },
@@ -81,15 +70,13 @@ export default function Dashboard() {
       0
     );
     
-    // Animate top categories
     tl.fromTo(
       topCategoriesRef.current,
       { y: 300, opacity: 0 },
       { y: 0, opacity: 1, duration: 1.2, stagger: 0.2, ease: "back.out(1.5)" },
-      "+=0.01" // Wait for previous animation to complete before starting
+      "+=0.01"
     );
     
-    // Animate recent transactions
     tl.fromTo(
       recentTransactionsRef.current,
       { x: 200, opacity: 0,rotate: 20, rotateY: 20},
@@ -97,7 +84,6 @@ export default function Dashboard() {
       "+=0.01"
     );
     
-    // Animate category items
     tl.fromTo(
       ".category-item",
       { y: 20, opacity: 0 },
@@ -105,7 +91,6 @@ export default function Dashboard() {
       0.4
     );
     
-    // Animate transaction items with a slight delay between each
     tl.fromTo(
       ".transaction-item",
       { y: 15, opacity: 0 },
@@ -113,7 +98,6 @@ export default function Dashboard() {
       0.5
     );
     
-    // Add subtle pulse animation to the total expenses card
     tl.fromTo(
       ".total-expenses-card",
       { boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" },
@@ -126,10 +110,8 @@ export default function Dashboard() {
       1
     );
     
-    // Add the content animations to the master timeline
     masterTl.add(tl, 0.2);
     
-    // Animate counter values
     const counterObj = { 
       total: 0, 
       monthly: 0, 
@@ -179,7 +161,7 @@ export default function Dashboard() {
         if(rect){
         const x = e.clientX - rect.left - rect.width/2;
         const y = e.clientY - rect.top - rect.height/2;
-        console.log(x,y);
+
         gsap.to(recentTransactionsRef.current, {
           rotationX: -y / 300,
           rotationY: x / 300,
@@ -199,20 +181,18 @@ export default function Dashboard() {
      
     }
     return () => {
-      // Clean up animations
       masterTl.kill();
       tl.kill();
     };
   }, [totalExpenses, currentMonthExpenses, averageMonthlyExpenses]);
 
-  // Calculate previous month expenses
   const previousMonthExpenses = useMemo(() => {
     const now = new Date();
     let previousMonth = now.getMonth() - 1;
     let previousMonthYear = now.getFullYear();
     
     if (previousMonth < 0) {
-      previousMonth = 11; // December
+      previousMonth = 11;
       previousMonthYear -= 1;
     }
 
@@ -227,13 +207,11 @@ export default function Dashboard() {
       .reduce((sum, transaction) => sum + transaction.amount, 0);
   }, [transactions]);
 
-  // Calculate month-over-month change
   const monthOverMonthChange = useMemo(() => {
-    if (previousMonthExpenses === 0) return 100; // If no previous expenses, consider it 100% increase
+    if (previousMonthExpenses === 0) return 100;
     return ((currentMonthExpenses - previousMonthExpenses) / previousMonthExpenses) * 100;
   }, [currentMonthExpenses, previousMonthExpenses]);
 
-  // Get top categories by expense
   const topCategories = useMemo(() => {
     const categoryTotals: Record<string, number> = {};
     
@@ -248,14 +226,13 @@ export default function Dashboard() {
         total
       }))
       .sort((a, b) => b.total - a.total)
-      .slice(0, 3); // Get top 3
+      .slice(0, 3);
   }, [transactions]);
 
-  // Get recent transactions
   const recentTransactions = useMemo(() => {
     return [...transactions]
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 5); // Get 5 most recent
+      .slice(0, 5);
   }, [transactions]);
 
   const formatCurrency = (amount: number) => {
@@ -268,16 +245,13 @@ export default function Dashboard() {
 
   return (
     <div ref={dashboardRef} className="grid gap-6 md:grid-cols-3 p-4 h-full overflow-hidden" style={{perspective: "200px"}}>
-      {/* Summary Cards */}
       <div ref={summaryCardsRef} className="grid grid-cols-1 md:grid-cols-1 gap-4">
-        {/* Total Expenses Card */}
         <div className="p-4 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-lg shadow-sm text-white total-expenses-card">
           <h3 className="text-sm font-medium text-white">Total Expenses</h3>
           <p className="text-2xl font-bold mt-1">{formatCurrency(animatedTotal)}</p>
           <p className="text-xs text-white mt-2">Lifetime total</p>
         </div>
         
-        {/* Current Month Card */}
         <div className="p-4 bg-white/5 text-white rounded-lg shadow-sm hover:shadow-lg hover:scale-[1.32] transition-[shadow,scale] duration-300">
           <h3 className="text-sm font-medium ">This Month</h3>
           <p className="text-2xl font-bold mt-1">{formatCurrency(animatedMonthly)}</p>
@@ -291,7 +265,6 @@ export default function Dashboard() {
           </div>
         </div>
         
-        {/* Average Monthly Card */}
         <div className="p-4 bg-white/5 text-white rounded-lg shadow-sm ">
           <h3 className="text-sm font-medium text-gray-500">Average Monthly</h3>
           <p className="text-2xl font-bold mt-1">
@@ -301,7 +274,6 @@ export default function Dashboard() {
         </div>
       </div>
       
-      {/* Top Categories */}
       <div ref={topCategoriesRef} className="bg-white/5 text-white rounded-lg shadow-sm p-4 ">
         <h3 className="font-medium mb-3">Top Spending Categories</h3>
         <div className="space-y-3">
@@ -320,7 +292,6 @@ export default function Dashboard() {
         </div>
       </div>
       
-      {/* Recent Transactions */}
       <div ref={recentTransactionsRef} className="bg-white/7 text-white rounded-lg shadow-sm  p-4">
         <h3 className="font-medium mb-3 text-purple-400 border-b-1 border-white/10 pb-2">Recent Transactions</h3>
         <div className="space-y-2">
@@ -353,7 +324,6 @@ export default function Dashboard() {
   );
 }
 
-// Helper function to count unique months in transactions
 function getUniqueMonthCount(transactions: any[]) {
   const uniqueMonths = new Set();
   

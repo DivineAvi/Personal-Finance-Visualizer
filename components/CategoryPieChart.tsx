@@ -25,11 +25,10 @@ export default function CategoryPieChart() {
   const [chartData, setChartData] = useState<CategoryTotal[]>([]);
   const [totalExpenses, setTotalExpenses] = useState(0);
   
-  // Get all available years from transactions
   const years = useMemo(() => {
     const yearsSet = new Set<number>();
     const currentYear = new Date().getFullYear();
-    yearsSet.add(currentYear); // Always include current year
+    yearsSet.add(currentYear);
     
     if (transactions && transactions.length > 0) {
       transactions.forEach(transaction => {
@@ -43,26 +42,22 @@ export default function CategoryPieChart() {
         }
       });
     }
-    return Array.from(yearsSet).sort((a, b) => b - a); // Sort descending (newest first)
+    return Array.from(yearsSet).sort((a, b) => b - a);
   }, [transactions]);
   
-  // Set default year if not selected
   useEffect(() => {
     if (years.length > 0 && !selectedYear) {
-      setSelectedYear(years[0]); // Default to most recent year
+      setSelectedYear(years[0]);
     }
   }, [years, selectedYear]);
 
-  // Process transaction data to group by category
   useEffect(() => {
     const categoryTotals: Record<string, number> = {};
     
-    // Initialize all categories with zero
     CATEGORIES.forEach(category => {
       categoryTotals[category.id] = 0;
     });
     
-    // Sum transactions by category for the selected year
     if (transactions && transactions.length > 0) {
       transactions.forEach(transaction => {
         try {
@@ -77,7 +72,6 @@ export default function CategoryPieChart() {
       });
     }
     
-    // Convert to array format for Recharts and filter out zero values
     const data = Object.keys(categoryTotals)
       .map(id => {
         const category = getCategoryById(id);
@@ -92,7 +86,6 @@ export default function CategoryPieChart() {
     
     setChartData(data);
     
-    // Calculate total expenses
     const total = data.reduce((sum, item) => sum + item.value, 0);
     setTotalExpenses(total);
   }, [transactions, selectedYear]);
@@ -144,7 +137,7 @@ export default function CategoryPieChart() {
             Total: <span className="text-indigo-400">${totalExpenses.toFixed(2)}</span>
           </div>
         </div>
-      </div>
+     </div>
       
       <div className="h-80 bg-black/10">
         {chartData.length > 0 ? (
@@ -155,8 +148,9 @@ export default function CategoryPieChart() {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                outerRadius={80}
+                outerRadius={120}
                 fill="#8884d8"
+                stroke="#ffffff30"
                 dataKey="value"
               >
                 {chartData.map((entry, index) => (

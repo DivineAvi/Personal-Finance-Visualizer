@@ -22,15 +22,13 @@ type MonthlyExpense = {
 export default function MonthlyExpensesChart() {
   const { transactions, loading } = useTransactionContext();
   const currentYear = new Date().getFullYear();
-  const [selectedYear, setSelectedYear] = useState(currentYear); // Default to current year
+  const [selectedYear, setSelectedYear] = useState(currentYear);
   const [chartData, setChartData] = useState<MonthlyExpense[]>([]);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-  // Colors for the chart
   const barColor = "#8884d8";
-  const activeBarColor = "#6366f1"; // Indigo color for active/clicked bar
+  const activeBarColor = "#6366f1";
   
-  // Custom tooltip component
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       const value = payload[0].value;
@@ -49,17 +47,14 @@ export default function MonthlyExpensesChart() {
     return null;
   };
 
-  // Process transaction data to group by month for the selected year
   useEffect(() => {
     const monthlyExpenses: Record<string, number> = {};
     
-    // Initialize all months with zero
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     months.forEach(month => {
       monthlyExpenses[month] = 0;
     });
     
-    // Sum transactions by month for the selected year
     if (transactions && transactions.length > 0) {
       transactions.forEach(transaction => {
         try {
@@ -76,27 +71,22 @@ export default function MonthlyExpensesChart() {
       });
     }
     
-    // Convert to array format for Recharts
     const data = months.map(month => ({
       month,
       amount: monthlyExpenses[month]
     }));
     
     setChartData(data);
-    // Reset active index when year changes
     setActiveIndex(null);
   }, [transactions, selectedYear]);
 
-  // Calculate total expenses for the year
   const totalYearlyExpenses = useMemo(() => {
     return chartData.reduce((total, item) => total + item.amount, 0);
   }, [chartData]);
 
-  // Get available years from transactions for the dropdown
   const availableYears = useMemo(() => {
     const years = new Set<number>();
     
-    // Always include current year
     years.add(currentYear);
     
     if (transactions && transactions.length > 0) {
@@ -112,15 +102,13 @@ export default function MonthlyExpensesChart() {
       });
     }
     
-    return Array.from(years).sort((a, b) => b - a); // Sort descending (newest first)
+    return Array.from(years).sort((a, b) => b - a);
   }, [transactions, currentYear]);
 
-  // Handle bar click
   const handleBarClick = (data: any, index: number) => {
     setActiveIndex(index === activeIndex ? null : index);
   };
 
-  // Handle chart click
   const handleChartClick = (data: any) => {
     if (data && typeof data.activeTooltipIndex === 'number') {
       handleBarClick(data, data.activeTooltipIndex);
@@ -138,7 +126,9 @@ export default function MonthlyExpensesChart() {
   }
 
   return (
-    <div className="w-full p-4 border border-white/20 rounded-lg shadow-sm bg-white/5 text-white">
+    <div className="w-full p-4 rounded-lg shadow-sm bg-white/5 text-white relative">
+        <div className="md:hidden absolute w-full bg-gradient-to-r from-black via-transparent to-black h-full top-0 left-0 pointer-events-none"></div>
+     
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Monthly Expenses</h2>
         <div className="flex items-center gap-4">
@@ -182,8 +172,8 @@ export default function MonthlyExpensesChart() {
             <Bar 
               dataKey="amount" 
               name="Expenses" 
-              radius={[4, 4, 0, 0]} // Rounded corners on top
-              strokeWidth={0} // Remove outline
+              radius={[4, 4, 0, 0]}
+              strokeWidth={0}
               cursor="pointer"
             >
               {chartData.map((entry, index) => (

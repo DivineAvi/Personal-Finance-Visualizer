@@ -11,7 +11,6 @@ export default function SpendingInsights() {
   const { budgets } = useBudgetContext();
   const { month: currentMonth, year: currentYear } = getCurrentMonthYear();
   
-  // Format currency values
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -20,7 +19,6 @@ export default function SpendingInsights() {
     }).format(amount);
   };
   
-  // Calculate insights
   const insights = useMemo(() => {
     const result = {
       totalSpent: 0,
@@ -36,17 +34,14 @@ export default function SpendingInsights() {
     
     if (transactions.length === 0) return result;
     
-    // Calculate total spent
     result.totalSpent = transactions.reduce((sum, t) => sum + t.amount, 0);
     
-    // Calculate current month spent
     const currentMonthTransactions = transactions.filter(t => {
       const date = new Date(t.date);
       return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
     });
     result.currentMonthSpent = currentMonthTransactions.reduce((sum, t) => sum + t.amount, 0);
     
-    // Calculate previous month spent
     let previousMonth = currentMonth - 1;
     let previousMonthYear = currentYear;
     if (previousMonth < 0) {
@@ -60,12 +55,10 @@ export default function SpendingInsights() {
     });
     result.previousMonthSpent = previousMonthTransactions.reduce((sum, t) => sum + t.amount, 0);
     
-    // Calculate month-over-month change
     if (result.previousMonthSpent > 0) {
       result.monthOverMonthChange = ((result.currentMonthSpent - result.previousMonthSpent) / result.previousMonthSpent) * 100;
     }
     
-    // Find largest single expense
     if (transactions.length > 0) {
       const largest = transactions.reduce((max, t) => t.amount > max.amount ? t : max, transactions[0]);
       result.largestExpense = {
@@ -76,7 +69,6 @@ export default function SpendingInsights() {
       };
     }
     
-    // Find most expensive category
     const categoryTotals: Record<string, number> = {};
     transactions.forEach(t => {
       categoryTotals[t.category] = (categoryTotals[t.category] || 0) + t.amount;
@@ -99,7 +91,6 @@ export default function SpendingInsights() {
       };
     }
     
-    // Find over budget categories for current month
     const currentMonthBudgets = budgets.filter(
       b => b.month === currentMonth && b.year === currentYear
     );
@@ -122,10 +113,8 @@ export default function SpendingInsights() {
       }
     });
     
-    // Sort over budget categories by amount over
     result.overBudgetCategories.sort((a, b) => b.overBy - a.overBy);
     
-    // Find potential savings opportunities (categories with highest discretionary spending)
     const discretionaryCategories = ['entertainment', 'dining', 'shopping'];
     discretionaryCategories.forEach(catId => {
       if (categoryTotals[catId] && categoryTotals[catId] > 0) {
@@ -139,10 +128,8 @@ export default function SpendingInsights() {
       }
     });
     
-    // Sort savings opportunities by amount
     result.savingsOpportunities.sort((a, b) => b.amount - a.amount);
     
-    // Find unusual spending (categories with significant increase from previous month)
     const previousMonthCategorySpending: Record<string, number> = {};
     previousMonthTransactions.forEach(t => {
       previousMonthCategorySpending[t.category] = (previousMonthCategorySpending[t.category] || 0) + t.amount;
@@ -152,7 +139,7 @@ export default function SpendingInsights() {
       const previousAmount = previousMonthCategorySpending[categoryId] || 0;
       if (previousAmount > 0) {
         const percentIncrease = ((amount - previousAmount) / previousAmount) * 100;
-        if (percentIncrease > 50) { // More than 50% increase
+        if (percentIncrease > 50) {
           const category = getCategoryById(categoryId);
           result.unusualSpending.push({
             id: categoryId,
@@ -165,20 +152,18 @@ export default function SpendingInsights() {
       }
     });
     
-    // Sort unusual spending by percent increase
     result.unusualSpending.sort((a, b) => b.percentIncrease - a.percentIncrease);
     
     return result;
   }, [transactions, budgets, currentMonth, currentYear]);
   
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-4">
+    <div className="bg-white/7 text-white/80 rounded-lg shadow-sm border border-white/7 p-4">
       <h2 className="text-xl font-semibold mb-4">Spending Insights</h2>
       
       <div className="space-y-6">
-        {/* Month-over-month comparison */}
-        <div className="p-4 bg-blue-50 rounded-lg">
-          <h3 className="font-medium text-blue-800 mb-2">Monthly Comparison</h3>
+        <div className="p-4 bg-indigo-500/80 rounded-lg relative hover:scale-103 shadow-lg transition-all duration-300">
+          <h3 className="font-medium text-white mb-2">Monthly Comparison</h3>
           <p className="mb-1">
             This month: <span className="font-medium">{formatCurrency(insights.currentMonthSpent)}</span>
           </p>
@@ -193,9 +178,8 @@ export default function SpendingInsights() {
           )}
         </div>
         
-        {/* Budget alerts */}
         {insights.overBudgetCategories.length > 0 && (
-          <div className="p-4 bg-red-50 rounded-lg">
+          <div className="p-4 bg-white/2 rounded-lg">
             <h3 className="font-medium text-red-800 mb-2">Budget Alerts</h3>
             <div className="space-y-2">
               {insights.overBudgetCategories.map(category => (
@@ -216,9 +200,8 @@ export default function SpendingInsights() {
           </div>
         )}
         
-        {/* Unusual spending */}
         {insights.unusualSpending.length > 0 && (
-          <div className="p-4 bg-amber-50 rounded-lg">
+          <div className="p-4 bg-white/2 rounded-lg">
             <h3 className="font-medium text-amber-800 mb-2">Unusual Spending</h3>
             <div className="space-y-2">
               {insights.unusualSpending.map(category => (
@@ -239,11 +222,10 @@ export default function SpendingInsights() {
           </div>
         )}
         
-        {/* Savings opportunities */}
         {insights.savingsOpportunities.length > 0 && (
-          <div className="p-4 bg-green-50 rounded-lg">
-            <h3 className="font-medium text-green-800 mb-2">Savings Opportunities</h3>
-            <p className="text-sm text-gray-600 mb-3">
+          <div className="p-4 bg-white/2 rounded-lg">
+            <h3 className="font-medium text-green-500 mb-2 ">Savings Opportunities</h3>
+            <p className="text-sm text-gray-300 mb-3">
               Consider reducing spending in these discretionary categories:
             </p>
             <div className="space-y-2">
@@ -265,7 +247,6 @@ export default function SpendingInsights() {
           </div>
         )}
         
-        {/* Spending facts */}
         <div className="space-y-3">
           <h3 className="font-medium">Did You Know?</h3>
           

@@ -6,7 +6,6 @@ import { getCategoryById } from "@/types/Categories";
 import { TransactionType } from "@/types/Transactions";
 import TransactionForm from "./TransactionForm";
 
-// Extended type for MongoDB transactions
 interface MongoTransaction extends TransactionType {
     _id: string;
 }
@@ -17,10 +16,10 @@ export default function TransactionList() {
     const [showConfirmDelete, setShowConfirmDelete] = useState<string | null>(null);
     
     const handleEdit = (transaction: MongoTransaction) => {
-        scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
+        const formElement = document.querySelector('.transaction-form');
+        if (formElement) {
+            formElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         setEditingTransaction({
             data: {
                 amount: transaction.amount,
@@ -100,7 +99,6 @@ export default function TransactionList() {
                             </tr>
                         ) : (
                             transactions.map((transaction) => {
-                                // Cast transaction to MongoTransaction
                                 const mongoTransaction = transaction as MongoTransaction;
                                 const category = getCategoryById(mongoTransaction.category);
                                 return (

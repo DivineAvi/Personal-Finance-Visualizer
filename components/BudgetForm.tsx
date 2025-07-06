@@ -11,20 +11,16 @@ export default function BudgetForm() {
   const [selectedYear, setSelectedYear] = useState(getCurrentMonthYear().year);
   const [categoryBudgets, setCategoryBudgets] = useState<Record<string, number>>({});
   
-  // Generate array of years (current year and 2 years before/after)
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
   
-  // Load existing budgets when month/year changes
   useEffect(() => {
     const newCategoryBudgets: Record<string, number> = {};
     
-    // Initialize all categories with zero
     CATEGORIES.forEach(category => {
       newCategoryBudgets[category.id] = 0;
     });
     
-    // Load existing budgets for the selected month/year
     budgets.forEach(budget => {
       if (budget.month === selectedMonth && budget.year === selectedYear) {
         newCategoryBudgets[budget.categoryId] = budget.amount;
@@ -43,7 +39,6 @@ export default function BudgetForm() {
   };
   
   const handleSaveBudgets = () => {
-    // Save all category budgets
     Object.entries(categoryBudgets).forEach(([categoryId, amount]) => {
       if (amount > 0) {
         addBudget({
@@ -59,16 +54,16 @@ export default function BudgetForm() {
   };
   
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-4">
+    <div className="bg-white/7 text-white/80 rounded-lg shadow-sm  p-4">
       <h2 className="text-xl font-semibold mb-4">Set Monthly Budgets</h2>
       
       <div className="flex gap-4 mb-6">
         <div className="w-1/2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Month</label>
+          <label className="block text-sm font-medium text-white/70  mb-1">Month</label>
           <select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-            className="w-full p-2 border rounded"
+            className="w-full p-2 bg-black shadow-[0_0_20px_5px_rgba(0,0,0,0.5)] border-1 border-white/15 rounded"
           >
             {Array.from({ length: 12 }, (_, i) => (
               <option key={i} value={i}>{getMonthName(i)}</option>
@@ -77,11 +72,11 @@ export default function BudgetForm() {
         </div>
         
         <div className="w-1/2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
+          <label className="block text-sm font-medium text-white/70 mb-1">Year</label>
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-            className="w-full p-2 border rounded"
+            className="w-full p-2 border text-black border-black bg-indigo-500 rounded"
           >
             {years.map(year => (
               <option key={year} value={year}>{year}</option>
@@ -109,7 +104,7 @@ export default function BudgetForm() {
                   type="number"
                   value={categoryBudgets[category.id] || ''}
                   onChange={(e) => handleBudgetChange(category.id, e.target.value)}
-                  className="w-full pl-8 pr-2 py-1 border rounded"
+                  className="w-full pl-8 pr-2 py-1 border border-white/15 bg-black/30 rounded [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                   placeholder="0.00"
                   min="0"
                   step="0.01"
@@ -123,7 +118,7 @@ export default function BudgetForm() {
       <div className="flex justify-end">
         <button
           onClick={handleSaveBudgets}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+          className="px-4 py-2 bg-indigo-500 text-white rounded hover:bg-blue-600 transition-colors"
         >
           Save Budgets
         </button>
